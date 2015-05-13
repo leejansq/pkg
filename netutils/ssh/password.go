@@ -1,4 +1,4 @@
-package ssh
+package ssh // import "github.com/leejansq/pkg/netutils/ssh"
 
 import (
 	"code.google.com/p/go.crypto/ssh"

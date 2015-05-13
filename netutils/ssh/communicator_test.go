@@ -1,6 +1,6 @@
 // +build !race
 
-package ssh
+package ssh // import "github.com/leejansq/pkg/netutils/ssh"
 
 import (
 	"bytes"

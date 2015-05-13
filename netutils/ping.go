@@ -1,4 +1,4 @@
-package netsq
+package netsq // import "github.com/leejansq/pkg/netutils"
 
 import (
 	"bytes"
