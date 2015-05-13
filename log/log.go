@@ -18,7 +18,9 @@ import (
 	"strings"
 
 	"fmt"
-	"github.com/astaxie/beego/logs"
+	"github.com/Sirupsen/logrus"
+	//"github.com/astaxie/beego/logs"
+	"os"
 	"runtime"
 	"sync"
 )
@@ -58,78 +60,108 @@ func UnregisterLable() {
 
 // SetLogLevel sets the global log level used by the simple
 // logger.
-func SetLevel(l int) {
-	BeeLogger.SetLevel(l)
+func SetLevel(l string) {
+	lvl, err := logrus.ParseLevel(l)
+	if err != nil {
+		return
+	}
+	logrus.SetLevel(lvl)
+	//BeeLogger.SetLevel(l)
 }
 
 func SetLogFuncCall(b bool) {
-	BeeLogger.EnableFuncCallDepth(b)
-	BeeLogger.SetLogFuncCallDepth(3)
+	//BeeLogger.EnableFuncCallDepth(b)
+	//BeeLogger.SetLogFuncCallDepth(3)
 }
 
 // logger references the used application logger.
-var BeeLogger *logs.BeeLogger
+//var BeeLogger *logs.BeeLogger
 
 // SetLogger sets a new logger.
 func SetLogger(adaptername string, config string) error {
-	err := BeeLogger.SetLogger(adaptername, config)
+	//err := BeeLogger.SetLogger(adaptername, config)
+	f, err := os.OpenFile(adaptername, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
 	}
+	logrus.SetOutput(f)
 	return nil
 }
 
 func Emergency(v ...interface{}) {
-	BeeLogger.Emergency(generateFmtStr(len(v)), v...)
+	entry().Fatalln(v)
+	//BeeLogger.Emergency(generateFmtStr(len(v)), v...)
 }
 
 func Alert(v ...interface{}) {
-	BeeLogger.Alert(generateFmtStr(len(v)), v...)
+	entry().Warnln(v)
+	//BeeLogger.Alert(generateFmtStr(len(v)), v...)
 }
 
 // Critical logs a message at critical level.
 func Critical(v ...interface{}) {
-	BeeLogger.Critical(generateFmtStr(len(v)), v...)
+	entry().Fatalln(v)
+	//BeeLogger.Critical(generateFmtStr(len(v)), v...)
 }
 
 // Error logs a message at error level.
 func Error(v ...interface{}) {
-	BeeLogger.Error(generateFmtStr(len(v)), v...)
+	entry().Errorln(v)
+	//BeeLogger.Error(generateFmtStr(len(v)), v...)
+}
+
+func Errorf(format string, v ...interface{}) {
+	entry().Errorf(format, v...)
 }
 
 // Warning logs a message at warning level.
 func Warning(v ...interface{}) {
-	BeeLogger.Warning(generateFmtStr(len(v)), v...)
+	entry().Warning(v)
+	//BeeLogger.Warning(generateFmtStr(len(v)), v...)
 }
 
 // Deprecated: compatibility alias for Warning(), Will be removed in 1.5.0.
 func Warn(v ...interface{}) {
-	Warning(v...)
+	entry().Warnln(v)
+	//Warning(v...)
 }
 
 func Notice(v ...interface{}) {
-	BeeLogger.Notice(generateFmtStr(len(v)), v...)
+	entry().Println(v)
+	//BeeLogger.Notice(generateFmtStr(len(v)), v...)
 }
 
 // Info logs a message at info level.
 func Informational(v ...interface{}) {
-	BeeLogger.Informational(generateFmtStr(len(v)), v...)
+	entry().Infoln(v)
+	//BeeLogger.Informational(generateFmtStr(len(v)), v...)
+}
+
+func Infof(format string, v ...interface{}) {
+	entry().Infof(format, v...)
 }
 
 // Deprecated: compatibility alias for Warning(), Will be removed in 1.5.0.
 func Info(v ...interface{}) {
-	Informational(v...)
+	entry().Infoln(v)
+	//Informational(v...)
 }
 
 // Debug logs a message at debug level.
 func Debug(v ...interface{}) {
-	BeeLogger.Debug(generateFmtStr(len(v)), v...)
+	entry().Debugln(v)
+	//BeeLogger.Debug(generateFmtStr(len(v)), v...)
+}
+
+func Debugf(format string, v ...interface{}) {
+	entry().Debugf(format, v...)
 }
 
 // Trace logs a message at trace level.
 // Deprecated: compatibility alias for Warning(), Will be removed in 1.5.0.
 func Trace(v ...interface{}) {
-	BeeLogger.Trace(generateFmtStr(len(v)), v...)
+	entry().Infoln(v)
+	//BeeLogger.Trace(generateFmtStr(len(v)), v...)
 }
 
 func generateFmtStr(n int) string {
@@ -142,7 +174,19 @@ func generateFmtStr(n int) string {
 
 }
 
+func entry() *logrus.Entry {
+	v, ok := goroLableMap.gomap[runtime.GoID()]
+	if ok == true {
+		return logrus.WithField("ID", v)
+	}
+	return logrus.NewEntry(logrus.StandardLogger())
+
+}
+
 func init() {
-	BeeLogger = logs.NewLogger(10000)
-	SetLogger("console", "")
+	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{TimestampFormat: "2006-01-02T15:04:05.000000000Z07:00"})
+	//logrus.
+	//BeeLogger = logs.NewLogger(10000)
+	//SetLogger("console", "")
 }

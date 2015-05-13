@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"os"
+	"syscall"
 	"time"
 )
 
@@ -87,4 +89,31 @@ func CheckSum(data []byte) uint16 {
 	sum += (sum >> 16)
 
 	return uint16(^sum)
+}
+
+type file interface {
+	File() (*os.File, error)
+}
+
+func ReuseTCPAddr(con file) error {
+	f, err := con.File()
+	if err != nil {
+		return err
+	}
+	err = syscall.SetsockoptInt(int(f.Fd()), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func StopReuseTCPAddr(con file) error {
+	f, err := con.File()
+	if err != nil {
+		return err
+	}
+	err = syscall.SetsockoptInt(int(f.Fd()), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 0)
+	if err != nil {
+		return err
+	}
+	return nil
 }
